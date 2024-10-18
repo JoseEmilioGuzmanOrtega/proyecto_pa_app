@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:proyecto_pa_app/Controlador/Producto_controlador.dart';
-import 'package:proyecto_pa_app/Controlador/Usuario_controlador.dart';
+import 'package:proyecto_pa_app/Controlador/Producto_ventas_controlador.dart';
 import 'package:proyecto_pa_app/Modelo/Producto.dart';
+import 'package:proyecto_pa_app/Modelo/ProductoVentas.dart';
+import 'package:proyecto_pa_app/Controlador/Usuario_controlador.dart'
+    as controlador;
 import 'package:proyecto_pa_app/Vistas/BotonBuscador.dart';
 import 'package:proyecto_pa_app/Vistas/BotonMenu.dart';
-import 'package:proyecto_pa_app/Vistas/BotonUsuarios.dart';
 import 'package:proyecto_pa_app/Vistas/Principal.dart';
 
-class ProductosVista extends StatefulWidget {
+class Ventas extends StatefulWidget {
   @override
-  _ProductosVistaState createState() => _ProductosVistaState();
+  _VentasState createState() => _VentasState();
 }
 
-class _ProductosVistaState extends State<ProductosVista> {
+class _VentasState extends State<Ventas> {
   final Producto_controlador _controlador = Producto_controlador();
+  final ProductoVentasControlador _ventasControlador =
+      ProductoVentasControlador();
   String _query = '';
   int _selectedIndex = 1;
 
   final List<Widget> _vistas = [
     Principal(),
-    BotonUsuarios(),
+    Ventas(),
     BotonBuscador(),
     BotonMenu(
-      nombreUsuario: UsuarioControlador().UsuarioActual,
-      usuariosRegistrados: UsuarioControlador().obtenerUsuariosRegistrados(),
+      nombreUsuario: controlador.UsuarioControlador().UsuarioActual,
+      usuariosRegistrados:
+          controlador.UsuarioControlador().obtenerUsuariosRegistrados(),
     ),
   ];
 
@@ -31,11 +36,24 @@ class _ProductosVistaState extends State<ProductosVista> {
     setState(() {
       _selectedIndex = index;
     });
-    // Navegar a la vista seleccionada
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => _vistas[_selectedIndex]),
     );
+  }
+
+  void _realizarVenta(Producto producto) {
+    setState(() {
+      if (_controlador.realizarVenta(producto, producto.cantidad)) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Venta realizada con éxito'),
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('No hay suficiente cantidad en stock'),
+        ));
+      }
+    });
   }
 
   @override
@@ -43,7 +61,7 @@ class _ProductosVistaState extends State<ProductosVista> {
     List<Producto> productosFiltrados = _controlador.buscarProducto(_query);
 
     return Scaffold(
-      backgroundColor: Color(0xFFD9B3FF), // Fondo color lila
+      backgroundColor: Color(0xFFD9B3FF),
       appBar: AppBar(
         backgroundColor: Color(0xFFD9B3FF),
         title: Row(
@@ -162,11 +180,36 @@ class _ProductosVistaState extends State<ProductosVista> {
                                 });
                               },
                             ),
+                            ElevatedButton(
+                              onPressed: () {
+                                _realizarVenta(producto);
+                              },
+                              child: Text('Vender'),
+                            )
                           ],
                         ),
                       ],
                     ),
                   ),
+                );
+              },
+            ),
+          ),
+          Divider(height: 30),
+          Text(
+            'Productos Vendidos:',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _ventasControlador.ventas.length,
+              itemBuilder: (context, index) {
+                ProductoVentas venta = _ventasControlador.ventas[index];
+                return ListTile(
+                  title: Text('${venta.nombre}'),
+                  subtitle: Text(
+                      'Cantidad: ${venta.cantidad}, Precio: \$${venta.precio.toStringAsFixed(2)}'),
+                  trailing: Text('${venta.fechaVenta}'),
                 );
               },
             ),
@@ -211,7 +254,7 @@ class _ProductosVistaState extends State<ProductosVista> {
         ],
         selectedItemColor: Colors.black,
         unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.grey[300], // Color seleccionado para el ítem
+        backgroundColor: Colors.grey[300],
       ),
     );
   }

@@ -64,7 +64,7 @@ class _PrincipalState extends State<Principal> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => ProductosVista()),
+                    MaterialPageRoute(builder: (context) => Ventas()),
                   );
                 },
               ),

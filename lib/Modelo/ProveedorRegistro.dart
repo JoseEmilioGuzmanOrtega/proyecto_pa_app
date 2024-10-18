@@ -1,8 +1,20 @@
+import 'package:hive/hive.dart';
+
+part 'ProveedorRegistro.g.dart';
+
+@HiveType(typeId: 2)
 class ProveedorRegistro {
-  final String nombreEmpresa;
-  final String ubicacion;
-  final String contacto;
-  final String telefono;
+  @HiveField(0)
+  late final String nombreEmpresa;
+
+  @HiveField(1)
+  late final String ubicacion;
+
+  @HiveField(2)
+  late final String contacto;
+
+  @HiveField(3)
+  late final String telefono;
 
   ProveedorRegistro({
     required this.nombreEmpresa,

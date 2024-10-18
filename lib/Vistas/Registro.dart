@@ -58,6 +58,13 @@ class _RegistroState extends State<Registro> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Agregamos el ícono arriba del texto "Registro de Usuario"
+                Icon(
+                  Icons.app_registration,
+                  size: 80,
+                  color: Colors.lightBlueAccent,
+                ),
+                const SizedBox(height: 10),
                 Text(
                   'Registro de Usuario',
                   style: TextStyle(

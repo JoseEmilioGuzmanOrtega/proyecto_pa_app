@@ -1,34 +1,24 @@
+import 'package:hive/hive.dart';
 import 'package:proyecto_pa_app/Modelo/ProductoExistencia.dart';
 
 class ProductoExistenciaControlador {
-  List<ProductoExistencia> productos = [
-    ProductoExistencia(
-      nombre: 'Coca Cola 600 ml',
-      descripcion: 'Bebida refrescante',
-      precio: 22.00,
-      cantidad: 20,
-      imagen: 'assets/coca_600ml.jpeg',
-    ),
-    ProductoExistencia(
-      nombre: 'Coca Cola 355 ml',
-      descripcion: 'Bebida refrecante',
-      precio: 10.00,
-      cantidad: 10,
-      imagen: 'aseets/coca_355ml.jpeg',
-    ),
-  ];
+  final Box<ProductoExistencia> _box =
+      Hive.box<ProductoExistencia>('productos');
+
+  List<ProductoExistencia> get productos => _box.values.toList();
 
   void agregarProducto(ProductoExistencia producto) {
-    productos.add(producto);
-  }
-
-  void eliminarProducto(ProductoExistencia producto) {
-    productos.remove(producto);
+    _box.add(producto);
   }
 
   void modificarProducto(int index, ProductoExistencia producto) {
-    productos[index] = producto;
+    _box.putAt(index, producto);
   }
 
-  registrarUsuario() {}
+  void eliminarProducto(ProductoExistencia producto) {
+    final int index = _box.values.toList().indexOf(producto);
+    if (index != -1) {
+      _box.deleteAt(index);
+    }
+  }
 }

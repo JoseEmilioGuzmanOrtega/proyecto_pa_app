@@ -1,9 +1,23 @@
+import 'package:hive/hive.dart';
+
+part 'ProductoExistencia.g.dart';
+
+@HiveType(typeId: 1)
 class ProductoExistencia {
-  final String nombre;
-  final String descripcion;
-  final double precio;
-  final int cantidad;
-  final String imagen;
+  @HiveField(0)
+  late final String nombre;
+
+  @HiveField(1)
+  late final String descripcion;
+
+  @HiveField(2)
+  late final double precio;
+
+  @HiveField(3)
+  late final int cantidad;
+
+  @HiveField(4)
+  late final String imagen;
 
   ProductoExistencia({
     required this.nombre,
@@ -12,4 +26,6 @@ class ProductoExistencia {
     required this.cantidad,
     required this.imagen,
   });
+
+  get id => null;
 }

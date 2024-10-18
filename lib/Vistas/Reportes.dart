@@ -4,7 +4,6 @@ import 'package:proyecto_pa_app/Controlador/Usuario_controlador.dart';
 import 'package:proyecto_pa_app/Modelo/ProductoVentas.dart';
 import 'package:proyecto_pa_app/Vistas/BotonBuscador.dart';
 import 'package:proyecto_pa_app/Vistas/BotonMenu.dart';
-import 'package:proyecto_pa_app/Vistas/BotonUsuarios.dart';
 import 'package:proyecto_pa_app/Vistas/Principal.dart';
 
 class Reportes extends StatefulWidget {
@@ -20,7 +19,7 @@ class _ReportesState extends State<Reportes> {
 
   final List<Widget> _vistas = [
     Principal(),
-    BotonUsuarios(),
+    Reportes(),
     BotonBuscador(),
     BotonMenu(
       nombreUsuario: UsuarioControlador().UsuarioActual,
@@ -32,13 +31,13 @@ class _ReportesState extends State<Reportes> {
     setState(() {
       _selectedIndex = index;
     });
-    // Navegar a la vista seleccionada
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => _vistas[_selectedIndex]),
     );
   }
 
+  // Función para buscar ventas por fecha
   void _buscar() {
     setState(() {
       _productosFiltrados = _controlador.buscarPorFecha(_fechaController.text);
@@ -50,7 +49,7 @@ class _ReportesState extends State<Reportes> {
     return Scaffold(
       backgroundColor: Colors.purple[100],
       appBar: AppBar(
-        title: const Text('Buscar Venta'),
+        title: const Text('Buscar Venta por Fecha'),
         backgroundColor: Colors.purple,
       ),
       body: Column(
@@ -89,11 +88,9 @@ class _ReportesState extends State<Reportes> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton.icon(
-                onPressed: () {
-                  // Lógica para generar el reporte
-                },
-                icon: const Icon(Icons.picture_as_pdf),
-                label: const Text('Generar Reporte'),
+                onPressed: _mostrarTicket, // Lógica para mostrar el ticket
+                icon: const Icon(Icons.receipt),
+                label: const Text('Generar Ticket'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red[100],
                 ),
@@ -101,7 +98,7 @@ class _ReportesState extends State<Reportes> {
               const SizedBox(width: 20),
               ElevatedButton.icon(
                 onPressed: () {
-                  // Lógica para salir
+                  Navigator.pop(context);
                 },
                 icon: const Icon(Icons.close),
                 label: const Text('Salir'),
@@ -111,8 +108,7 @@ class _ReportesState extends State<Reportes> {
               ),
             ],
           ),
-          const SizedBox(
-              height: 40), // Add this line to create space below the buttons
+          const SizedBox(height: 40), // Añadir espacio debajo de los botones
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -143,6 +139,7 @@ class _ReportesState extends State<Reportes> {
     );
   }
 
+  // Widget para mostrar cada venta filtrada
   Widget _productoCard(ProductoVentas producto) {
     return Card(
       shape: RoundedRectangleBorder(
@@ -153,6 +150,7 @@ class _ReportesState extends State<Reportes> {
           producto.imagen,
           width: 50,
           height: 50,
+          fit: BoxFit.cover,
         ),
         title: Text(
           producto.nombre,
@@ -181,6 +179,67 @@ class _ReportesState extends State<Reportes> {
           ],
         ),
       ),
+    );
+  }
+
+  // Función para mostrar el ticket
+  void _mostrarTicket() {
+    final total = _productosFiltrados.fold(
+        0.0, (sum, producto) => sum + (producto.precio * producto.cantidad));
+
+    // Suma de la cantidad total de productos vendidos
+    final totalProductosVendidos =
+        _productosFiltrados.fold(0, (sum, producto) => sum + producto.cantidad);
+
+    final now = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Ticket de Venta'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Nombre de la tienda: TIENDA "DON PACO"S"'),
+              Text('Fecha: ${_fechaController.text}'),
+              Text('Hora: ${now.hour}:${now.minute}'),
+              const SizedBox(height: 20),
+              Text('Productos Vendidos: ${_productosFiltrados.length}'),
+              Text(
+                  'Cantidad Total de Productos Vendidos: $totalProductosVendidos'), // Mostrar la cantidad total de productos vendidos
+              const Divider(),
+              Column(
+                children: _productosFiltrados.map((producto) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(producto.nombre),
+                      Text('${producto.cantidad} x '
+                          '\$${producto.precio.toStringAsFixed(2)}'),
+                      Text(
+                        '\$${(producto.precio * producto.cantidad).toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 20),
+              Text('Total vendido: \$${total.toStringAsFixed(2)}'),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

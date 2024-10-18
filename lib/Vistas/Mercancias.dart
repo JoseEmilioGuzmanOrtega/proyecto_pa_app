@@ -3,7 +3,6 @@ import 'package:proyecto_pa_app/Controlador/Producto_existencia_controlador.dart
 import 'package:proyecto_pa_app/Modelo/ProductoExistencia.dart';
 import 'package:proyecto_pa_app/Vistas/BotonBuscador.dart';
 import 'package:proyecto_pa_app/Vistas/BotonMenu.dart';
-import 'package:proyecto_pa_app/Vistas/BotonUsuarios.dart';
 import 'package:proyecto_pa_app/Vistas/Principal.dart';
 import 'package:proyecto_pa_app/Controlador/Usuario_controlador.dart';
 
@@ -16,10 +15,11 @@ class _MercanciasState extends State<Mercancias> {
   final ProductoExistenciaControlador _controlador =
       ProductoExistenciaControlador();
   int _selectedIndex = 1;
+  ProductoExistencia? _productoSeleccionado;
 
   final List<Widget> _vistas = [
     Principal(),
-    BotonUsuarios(),
+    Mercancias(),
     BotonBuscador(),
     BotonMenu(
       nombreUsuario: UsuarioControlador().UsuarioActual,
@@ -31,11 +31,186 @@ class _MercanciasState extends State<Mercancias> {
     setState(() {
       _selectedIndex = index;
     });
-    // Navegar a la vista seleccionada
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => _vistas[_selectedIndex]),
     );
+  }
+
+  void _mostrarDialogoAgregar() {
+    final nombreController = TextEditingController();
+    final descripcionController = TextEditingController();
+    final precioController = TextEditingController();
+    final cantidadController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Agregar Producto'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              TextField(
+                controller: descripcionController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+              ),
+              TextField(
+                controller: precioController,
+                decoration: const InputDecoration(labelText: 'Precio'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: cantidadController,
+                decoration: const InputDecoration(labelText: 'Cantidad'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                final String nombre = nombreController.text;
+                final String descripcion = descripcionController.text;
+                final double? precio = double.tryParse(precioController.text);
+                final int? cantidad = int.tryParse(cantidadController.text);
+
+                if (nombre.isEmpty ||
+                    descripcion.isEmpty ||
+                    precio == null ||
+                    cantidad == null) {
+                  // Mostrar un mensaje de error si hay datos inválidos
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Por favor ingrese datos válidos')),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  final nuevoProducto = ProductoExistencia(
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    precio: precio,
+                    cantidad: cantidad,
+                    imagen: 'https://via.placeholder.com/150',
+                  );
+                  _controlador.agregarProducto(nuevoProducto);
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Agregar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _modificarProducto() {
+    if (_productoSeleccionado == null) return;
+
+    final nombreController =
+        TextEditingController(text: _productoSeleccionado!.nombre);
+    final descripcionController =
+        TextEditingController(text: _productoSeleccionado!.descripcion);
+    final precioController =
+        TextEditingController(text: _productoSeleccionado!.precio.toString());
+    final cantidadController =
+        TextEditingController(text: _productoSeleccionado!.cantidad.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Modificar Producto'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nombreController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              TextField(
+                controller: descripcionController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+              ),
+              TextField(
+                controller: precioController,
+                decoration: const InputDecoration(labelText: 'Precio'),
+                keyboardType: TextInputType.number,
+              ),
+              TextField(
+                controller: cantidadController,
+                decoration: const InputDecoration(labelText: 'Cantidad'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                final String nombre = nombreController.text;
+                final String descripcion = descripcionController.text;
+                final double? precio = double.tryParse(precioController.text);
+                final int? cantidad = int.tryParse(cantidadController.text);
+
+                if (nombre.isEmpty ||
+                    descripcion.isEmpty ||
+                    precio == null ||
+                    cantidad == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Por favor ingrese datos válidos')),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  _productoSeleccionado!.nombre = nombre;
+                  _productoSeleccionado!.descripcion = descripcion;
+                  _productoSeleccionado!.precio = precio;
+                  _productoSeleccionado!.cantidad = cantidad;
+                  _controlador.modificarProducto(
+                      _productoSeleccionado!.id as int, _productoSeleccionado!);
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Modificar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _eliminarProducto() {
+    if (_productoSeleccionado != null) {
+      setState(() {
+        _controlador.eliminarProducto(_productoSeleccionado!);
+        _productoSeleccionado = null;
+      });
+    }
+  }
+
+  void _salir() {
+    Navigator.pop(context);
   }
 
   @override
@@ -95,11 +270,10 @@ class _MercanciasState extends State<Mercancias> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: ListTile(
-        leading: Image.network(
-          producto.imagen,
-          width: 50,
-          height: 50,
-          fit: BoxFit.cover,
+        leading: Icon(
+          Icons.sell,
+          size: 50,
+          color: Colors.grey,
         ),
         title: Text(
           producto.nombre,
@@ -114,6 +288,11 @@ class _MercanciasState extends State<Mercancias> {
             Text('Cantidad: ${producto.cantidad}'),
           ],
         ),
+        onTap: () {
+          setState(() {
+            _productoSeleccionado = producto;
+          });
+        },
       ),
     );
   }
@@ -125,9 +304,7 @@ class _MercanciasState extends State<Mercancias> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           ElevatedButton.icon(
-            onPressed: () {
-              // Lógica para agregar producto
-            },
+            onPressed: _mostrarDialogoAgregar,
             icon: const Icon(Icons.add),
             label: const Text('Agregar'),
             style: ElevatedButton.styleFrom(
@@ -135,19 +312,7 @@ class _MercanciasState extends State<Mercancias> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              // Lógica para eliminar producto
-            },
-            icon: const Icon(Icons.delete),
-            label: const Text('Eliminar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[100],
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              // Lógica para modificar producto
-            },
+            onPressed: _modificarProducto,
             icon: const Icon(Icons.edit),
             label: const Text('Modificar'),
             style: ElevatedButton.styleFrom(
@@ -155,9 +320,15 @@ class _MercanciasState extends State<Mercancias> {
             ),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              // Lógica para salir
-            },
+            onPressed: _eliminarProducto,
+            icon: const Icon(Icons.delete),
+            label: const Text('Eliminar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[100],
+            ),
+          ),
+          ElevatedButton.icon(
+            onPressed: _salir,
             icon: const Icon(Icons.close),
             label: const Text('Salir'),
             style: ElevatedButton.styleFrom(
